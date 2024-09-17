@@ -1,0 +1,135 @@
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #6b46c1; /* Tailwind's bg-purple-700 */
+}
+  
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 28rem; /* Tailwind's max-w-md */
+    padding: 2rem; /* Tailwind's p-8 */
+    background-color: #ffffff; /* Tailwind's bg-white */
+    border-radius: 0.5rem; /* Tailwind's rounded-lg */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Tailwind's shadow-md */
+}
+  
+.title {
+    margin-bottom: 15px; /* Tailwind's mb-6 */
+    font-size: 32px; /* Tailwind's text-3xl */
+    font-weight: 700; /* Tailwind's font-bold */
+    margin-right: auto;
+    color:#000;
+}
+  
+.form {
+    width: 100%;
+}
+  
+.inputGroup {
+    margin-bottom: 1rem; /* Tailwind's mb-4 */
+}
+  
+.label {
+    display: block;
+    margin-bottom: 0.5rem; /* Tailwind's mb-2 */
+    font-size: 0.875rem; /* Tailwind's text-sm */
+    font-weight: 500; /* Tailwind's font-medium */
+    color: #4a5568; /* Tailwind's text-gray-700 */
+}
+  
+.input {
+    width: 100%;
+    padding: 0.5rem 0.75rem; /* Tailwind's px-3 py-2 */
+    border: 1px solid #e2e8f0; /* Tailwind's border */
+    border-radius: 0.375rem; /* Tailwind's rounded-md */
+    outline: none;
+    transition: box-shadow 0.2s;
+}
+  
+.input:focus {
+    box-shadow: 0 0 0 2px rgba(107, 70, 193, 0.5); /* Tailwind's focus:ring-2 focus:ring-purple-600 */
+}
+  
+.forgotPassword {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem; /* Tailwind's mb-6 */
+}
+  
+.forgotPasswordLink {
+    font-size: 0.875rem; /* Tailwind's text-sm */
+    color: #6b46c1; /* Tailwind's text-purple-600 */
+    text-decoration: underline;
+}
+  
+.button {
+    width: 100%;
+    padding: 0.5rem 1rem; /* Tailwind's px-4 py-2 */
+    color: #ffffff; /* Tailwind's text-white */
+    background-color: #6b46c1; /* Tailwind's bg-purple-600 */
+    border-radius: 0.375rem; /* Tailwind's rounded-md */
+    transition: background-color 0.2s;
+}
+  
+.button:hover {
+    background-color: #553c9a; /* Tailwind's hover:bg-purple-700 */
+}
+  
+.button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(107, 70, 193, 0.5); /* Tailwind's focus:ring-2 focus:ring-purple-600 */
+}
+  
+.divider {
+    margin: 1.5rem 0; /* Tailwind's my-6 */
+    border-top: 1px solid #e2e8f0; /* Tailwind's border-t border-gray-300 */
+}
+  
+.socialButtons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+  
+.socialButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.5rem 1rem; /* Tailwind's px-4 py-2 */
+    margin-bottom: 1rem; /* Tailwind's mb-4 */
+    color: #4a5568; /* Tailwind's text-gray-700 */
+    background-color: #ffffff; /* Tailwind's bg-white */
+    border: 1px solid #e2e8f0; /* Tailwind's border */
+    border-radius: 0.375rem; /* Tailwind's rounded-md */
+    transition: background-color 0.2s;
+}
+  
+.socialButton:hover {
+    background-color: #f7fafc; /* Tailwind's hover:bg-gray-100 */
+}
+  
+.socialIcon {
+    width: 1.25rem; /* Tailwind's w-5 */
+    height: 1.25rem; /* Tailwind's h-5 */
+    margin-right: 0.5rem; /* Tailwind's mr-2 */
+}
+  
+.footer {
+    margin-top: 1.5rem; /* Tailwind's mt-6 */
+    font-size: 0.875rem; /* Tailwind's text-sm */
+    text-align: center;
+}
+  
+.footerLink {
+    color: #6b46c1; /* Tailwind's text-purple-600 */
+    text-decoration: underline;
+}

@@ -1,0 +1,221 @@
+.sidebar {
+    width: 17%;
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: width 0.2s;
+    position: fixed;
+    top: 78px; /* Adjust this value to match the height of your header */
+    height: calc(100vh - 60px); /* Adjust this value to match the height of your header */
+    overflow-y: auto;
+}
+.sidebar1 {
+    width:5%;
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: width 0.2s;
+    position: fixed;
+    top: 78px; /* Adjust this value to match the height of your header */
+    height: calc(100vh - 60px); /* Adjust this value to match the height of your header */
+    overflow-y: auto;
+}
+
+.hidden {
+    transform: translateX(-100%);
+    display: none;
+}
+.hidden1 {
+    transform: translateX(-100%);
+    display: none;
+}
+
+
+
+.chatHistoryContainer {
+    max-height: 39vh; /* Adjust this value as needed */
+    overflow-y: auto;
+    margin: 0% !important;
+    margin-top: 5px !important;
+}
+
+.chatHistoryTitle {
+    position: sticky;
+    top: 0%;
+    background-color: #FFFFFF;
+    font-size: larger;
+    font-weight: 600;
+    margin: 0%;
+    /* padding: 10px 0; */
+}
+
+.dateHeader {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.chatItem {
+    cursor: pointer;
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #555;
+    font-size: 14px;
+}
+
+.chatItem:hover {
+    background-color: #f0f0f0;
+}
+
+.sidebarBottom {
+    position: absolute;
+    bottom: 2%;
+    width: 91%;
+}
+
+.chatLogButton,
+.manageDocumentButton,
+.clearCacheButton {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 1px solid grey;
+    color: #555555;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 10px;
+    text-align: left;
+    width: 100%;
+    font-family: Arial, sans-serif;
+}
+
+.chatLogButton1,
+.manageDocumentButton1,
+.clearCacheButton1 {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 1px solid grey;
+    color: #555555;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 10px;
+    text-align: left;
+    width: 80%;
+    font-family: Arial, sans-serif;
+}
+
+/* Icon inside buttons */
+.chat_log_icon{
+    margin-right: 12px;
+    width: 24px;
+    height: 24px;
+}
+
+.manage_document_icon{
+    margin-right: 12px;
+    width: 24px;
+    height: 24px;
+}
+
+.clear_cache_icon{
+    margin-right: 12px;
+    width: 24px;
+    height: 24px;
+}
+
+/* Hover effect */
+.chatLogButton:hover,
+.manageDocumentButton:hover,
+.clearCacheButton:hover {
+    background-color: #f0f0f0;
+}
+
+.newChatButton {
+    background-color: #0BAEF3;
+    color: white;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 99px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.newChatButton:hover {
+    background-color: #0BAEF3;
+}
+
+.chats h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.chats p {
+    color: gray;
+    font-size: 17px;
+}
+
+.sidebar.collapsed {
+    width: 60px; /* Collapsed width */
+}
+
+.hamburgerButton {
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.newChatButton {
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.sidebarBottom {
+    display: flex;
+    flex-direction: column;
+}
+
+.chatLogButton, .manageDocumentButton, .clearCacheButton {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.chat_log_icon, .manage_document_icon, .clear_cache_icon {
+    margin-right: 1rem;
+}
+
+.collapsed .chat_log_icon, .collapsed .manage_document_icon, .collapsed .clear_cache_icon {
+    margin-right: 0;
+}
+
+.collapsed span {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .sidebar {
+        width: 54%;
+        z-index: 1;
+    }
+    .sidebar1 {
+        width: 0%;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+.sidebar {
+    width: 34%;
+    z-index: 1;
+}
+.sidebar1 {
+    width: 10%;
+}
+}

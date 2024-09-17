@@ -1,0 +1,31 @@
+.AppHeader {
+    background-color: #0BAEF3;
+    height: 80px;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+}
+
+.menuIcon {
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+}
+
+.logo {
+    width: 197px;
+    height: 56px;
+    margin-right: 75%;
+}
+
+.userIcon {
+    width: 48px;
+    height: 48px;
+}

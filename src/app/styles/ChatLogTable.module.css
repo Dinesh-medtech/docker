@@ -1,0 +1,66 @@
+.chatLogContainer {
+
+    padding-left: 120px;
+    padding-top: 20px;
+    margin-top:50px;
+    padding-top: 5px;
+}
+
+.chatLogContainer h1 {
+  margin-bottom: 20px;
+}
+
+.searchContainer {
+  margin-bottom: 20px;
+}
+
+.chatLogEntry {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.userAvatar {
+  width: 40px;
+  height: 40px;
+  background-color: #e0e0e0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.chatContent h4 {
+  margin-bottom: 5px;
+}
+
+.chatContent p {
+  margin-bottom: 10px;
+}
+
+.userFeedback {
+  align-self: flex-end;
+  color: green;
+}
+
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.pagination button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+}

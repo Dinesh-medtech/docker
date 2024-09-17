@@ -1,0 +1,83 @@
+.manageDocumentsContainer {
+    padding: 20px;
+    background-color: #f9f9f9;
+    width: 100%;
+    padding-left:140px;
+    margin-top:50px;
+  }
+
+  .docsHeading{
+    display:flex;
+  }
+
+  .documentsTable > thead >tr > th {
+    color:black;
+  }
+  .documentsTable > tbody >tr > td {
+    color:black;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .searchContainer {
+    display: flex;
+    align-items: center;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    padding: 5px;
+    border-radius: 99px;
+  }
+  
+  .searchInput {
+    border: none;
+    background: none;
+    padding: 5px;
+    outline: none;
+   
+  }
+  
+  .filterButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  
+  .uploadButton {
+    background-color: #6200ea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 99px;
+    cursor: pointer;
+  }
+  
+  .documentsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    margin-top:50px;
+  }
+  
+  .documentsTable th, .documentsTable td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .paginationButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
