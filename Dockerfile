@@ -33,12 +33,12 @@ FROM node:20-alpine AS runtime
 # Set working directory
 WORKDIR /app
 
-# # Copy only necessary files from the build stage
-# COPY --from=build /app/.next/standalone ./
-# COPY --from=build /app/.next/static ./.next/static
-# COPY --from=build /app/public ./public
-# # COPY --from=build /app/.env ./.env
-# COPY --from=build /app/package.json ./package.json
+# Copy only necessary files from the build stage
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
+# COPY --from=build /app/.env ./.env
+COPY --from=build /app/package.json ./package.json
 
 # Expose the port your Next.js app runs on
 EXPOSE 3000
