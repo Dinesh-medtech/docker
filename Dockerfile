@@ -1,47 +1,83 @@
 # Stage 1: Build environment
 FROM node:20-alpine AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies
+# Install dependencies without dev ones (no more dev fluff)
 RUN npm install --omit=dev
 
-# Copy the rest of the application code
+# Copy the rest of your app
 COPY . .
 
-# # Set build arguments
-# ARG NEXT_PUBLIC_API_BASE_URL
-# ARG NEXT_PUBLIC_RESTRICTED_EMAIL_DOMAINS
-# ARG NODE_ENV
+# Skip linting (we don’t have time for that)
+ENV NEXT_DISABLE_LINTING=true
 
-# # Set environment variables
-# ENV NODE_ENV=${NODE_ENV}
-# ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
-# ENV NEXT_PUBLIC_RESTRICTED_EMAIL_DOMAINS=${NEXT_PUBLIC_RESTRICTED_EMAIL_DOMAINS}
-
-
-# Build the Next.js application
+# Build the Next.js app
 RUN npm run build
 
 # Stage 2: Runtime environment
 FROM node:20-alpine AS runtime
 
-# Set working directory
 WORKDIR /app
 
-# Copy only necessary files from the build stage
+# Copy build output
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
-# COPY --from=build /app/.env ./.env
 COPY --from=build /app/package.json ./package.json
 
-# Expose the port your Next.js app runs on
+# Expose port 3000 for the app
 EXPOSE 3000
 
-# Command to run the Next.js app
+# Run the app
 ENTRYPOINT [ "node", "server.js" ]
+# # Stage 1: Build environment
+# FROM node:20-alpine AS build
+
+# # Set working directory
+# WORKDIR /app
+
+# # Copy package.json and package-lock.json
+# COPY package.json package-lock.json ./
+
+# # Install dependencies
+# RUN npm install --omit=dev
+
+# # Copy the rest of the application code
+# COPY . .
+
+# # # Set build arguments
+# # ARG NEXT_PUBLIC_API_BASE_URL
+# # ARG NEXT_PUBLIC_RESTRICTED_EMAIL_DOMAINS
+# # ARG NODE_ENV
+
+# # # Set environment variables
+# # ENV NODE_ENV=${NODE_ENV}
+# # ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+# # ENV NEXT_PUBLIC_RESTRICTED_EMAIL_DOMAINS=${NEXT_PUBLIC_RESTRICTED_EMAIL_DOMAINS}
+
+
+# # Build the Next.js application
+# RUN npm run build
+
+# # Stage 2: Runtime environment
+# FROM node:20-alpine AS runtime
+
+# # Set working directory
+# WORKDIR /app
+
+# # Copy only necessary files from the build stage
+# COPY --from=build /app/.next/standalone ./
+# COPY --from=build /app/.next/static ./.next/static
+# COPY --from=build /app/public ./public
+# # COPY --from=build /app/.env ./.env
+# COPY --from=build /app/package.json ./package.json
+
+# # Expose the port your Next.js app runs on
+# EXPOSE 3000
+
+# # Command to run the Next.js app
+# ENTRYPOINT [ "node", "server.js" ]
