@@ -6,13 +6,13 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies without dev ones (no more dev fluff)
-RUN npm install --omit=dev
+# Install dependencies including dev dependencies (like tailwindcss if needed)
+RUN npm install
 
 # Copy the rest of your app
 COPY . .
 
-# Skip linting (we don’t have time for that)
+# Skip linting
 ENV NEXT_DISABLE_LINTING=true
 
 # Build the Next.js app
@@ -34,6 +34,7 @@ EXPOSE 3000
 
 # Run the app
 ENTRYPOINT [ "node", "server.js" ]
+
 # # Stage 1: Build environment
 # FROM node:20-alpine AS build
 
