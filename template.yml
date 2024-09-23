@@ -1,0 +1,550 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Template description
+  Last Modified: 
+  Author: Vignesh S
+
+Parameters:
+  EnvironmentName:
+    Description: Environment Name
+    Type: String
+  ProjectName:
+    Description: Project Name
+    Type: String
+  GoogleClientID:
+    Description: Google Client ID
+    Type: String
+    NoEcho: true
+  GoogleClientSecret:
+    Description: Google Client Secret
+    Type: String
+    NoEcho: true
+  LinkedInClientID:
+    Description: LinkedIn Client ID
+    Type: String
+    NoEcho: true
+  LinkedInClientSecret:
+    Description: LinkedIn Client Secret
+    Type: String
+    NoEcho: true
+  latestImageUri:
+    Description: Image URI
+    Type: String
+
+
+Mappings:
+  ConfigMap:
+    Dev:
+      # Platform: dev
+      VpcId: vpc-072b69f6c8e1b45f0
+      SubnetIds: 'subnet-02867b2c648a47a8a,subnet-000f3833371ac91d6'
+      # VpcCidr: '10.1.0.0/16'
+      domainName: "https://dev.acabot.ai"
+      cognitodomain: "acabotdevs"
+    Test:
+      # Platform: test
+      VpcId: vpc-072b69f6c8e1b45f0
+      SubnetIds: 'subnet-02867b2c648a47a8a,subnet-000f3833371ac91d6'
+      # VpcCidr: '10.1.0.0/16'
+      domainName: "https://test.acabot.ai"
+      cognitodomain: "acabottest"
+    Prod:
+      # Platform: test
+      VpcId: vpc-072b69f6c8e1b45f0
+      SubnetIds: 'subnet-02867b2c648a47a8a,subnet-000f3833371ac91d6' 
+      # VpcCidr: '10.1.0.0/16'
+      domainName: "https://acabot.ai"
+      cognitodomain: "acabot"
+  RegionShortForms:
+    us-east-1:
+      short: ue1
+    eu-central-1:
+      short: ec1
+    ap-southeast-1:
+      short: as1
+
+Resources:
+
+ ContainerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub SG-Acabot-Container-${EnvironmentName}
+      GroupName: !Sub SG-Acabot-Container-${EnvironmentName}
+      VpcId: !FindInMap [ConfigMap, !Ref EnvironmentName, VpcId]
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          SourceSecurityGroupId: !If
+                      - isTest
+                      - !ImportValue Public-Acabot-Alb-test-sg
+                      - !ImportValue Public-Acabot-Alb-sg
+        - IpProtocol: "-1"
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+
+  EFSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub SG-Acabot-EFS-${EnvironmentName}
+      GroupName: !Sub SG-Acabot-EFS-${EnvironmentName}
+      VpcId: !FindInMap [ConfigMap, !Ref EnvironmentName, VpcId]
+      SecurityGroupIngress:
+        - IpProtocol: "tcp"
+          FromPort: 2049
+          ToPort: 2049
+          SourceSecurityGroupId: !GetAtt ContainerSecurityGroup.GroupId
+        - IpProtocol: "-1"
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ["-", ["Acabot", ExecutionRole, !Ref EnvironmentName]]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+      Path: "/"
+
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        !Join [
+          '-',
+          [
+            "Acabot",
+            TaskRole,
+            !Ref EnvironmentName,
+          ],
+        ]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: '/'
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: '/'
+      HealthCheckTimeoutSeconds: 5
+      UnhealthyThresholdCount: 2
+      HealthyThresholdCount: 2
+      Name:
+        !Join [
+          '-',
+          [Acabot, TG, !Ref EnvironmentName],
+        ]
+      Port: 3000
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 60 # default is 300
+      TargetType: ip
+      VpcId: !FindInMap [ConfigMap, !Ref EnvironmentName, VpcId]
+      Tags:
+        - Key: Name
+          Value: !Sub Acabot-TargetGroup-${EnvironmentName}
+
+  # ElasticSearchTargetGroup:
+  #   Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  #   Properties:
+  #     HealthCheckIntervalSeconds: 10
+  #     HealthCheckPath: '/'
+  #     HealthCheckTimeoutSeconds: 5
+  #     UnhealthyThresholdCount: 2
+  #     HealthyThresholdCount: 2
+  #     Name:
+  #       !Join [
+  #         '-',
+  #         [AcabotElasticSearch, TG, !Ref EnvironmentName],
+  #       ]
+  #     Port: 9200
+  #     Protocol: HTTP
+  #     TargetGroupAttributes:
+  #       - Key: deregistration_delay.timeout_seconds
+  #         Value: 60 # default is 300
+  #     TargetType: ip
+  #     VpcId: !FindInMap [ConfigMap, !Ref EnvironmentName, VpcId]
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub AcabotElasticSearch-TargetGroup-${EnvironmentName}
+
+  ListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref TargetGroup
+          Type: forward
+      LoadBalancerArn: !If
+                      - isTest
+                      - !ImportValue Public-Acabot-Alb-Arn-test
+                      - !ImportValue Public-Acabot-Alb-Arn
+      Port: 80
+      Protocol: HTTP
+
+  # ElasticSearchListenerRule:
+  #   Type: AWS::ElasticLoadBalancingV2::Listener
+  #   Properties:
+  #     DefaultActions:
+  #       - TargetGroupArn: !Ref ElasticSearchTargetGroup
+  #         Type: forward
+  #     LoadBalancerArn: !If
+  #                     - isTest
+  #                     - !ImportValue Public--Acabot-Alb-Arn-test
+  #                     - !ImportValue Public--Acabot-Alb-Arn
+  #     Port: 9200
+  #     Protocol: HTTP
+
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Join ["-", [Acabot, Cluster, !Ref EnvironmentName]]
+      Tags:
+        - Key: Name
+          Value: !Sub Acabot-Cluster-${EnvironmentName}
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ["", [/ecs/, Acabot , TaskDefinition, !Ref EnvironmentName]]
+      RetentionInDays: 30
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    # Makes sure the log group is created before it is used.
+    DependsOn: LogGroup
+    Properties:
+      # Name of the task definition. Subsequent versions of the task definition are grouped together under this name.
+      Family: !Join ["-", [Acabot, TaskDefinition, !Ref EnvironmentName]]
+      # awsvpc is required for Fargate
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      # 256 (.25 vCPU) - Available memory values: 0.5GB, 1GB, 2GB
+      # 512 (.5 vCPU) - Available memory values: 1GB, 2GB, 3GB, 4GB
+      # 1024 (1 vCPU) - Available memory values: 2GB, 3GB, 4GB, 5GB, 6GB, 7GB, 8GB
+      # 2048 (2 vCPU) - Available memory values: Between 4GB and 16GB in 1GB increments
+      # 4096 (4 vCPU) - Available memory values: Between 8GB and 30GB in 1GB increments
+      Cpu: 256
+      # 0.5GB, 1GB, 2GB - Available cpu values: 256 (.25 vCPU)
+      # 1GB, 2GB, 3GB, 4GB - Available cpu values: 512 (.5 vCPU)
+      # 2GB, 3GB, 4GB, 5GB, 6GB, 7GB, 8GB - Available cpu values: 1024 (1 vCPU)
+      # Between 4GB and 16GB in 1GB increments - Available cpu values: 2048 (2 vCPU)
+      # Between 8GB and 30GB in 1GB increments - Available cpu values: 4096 (4 vCPU)
+      Memory: 0.5GB
+      # A role needed by ECS.
+      # "The ARN of the task execution role that containers in this task can assume. All containers in this task are granted the permissions that are specified in this role."
+      # "There is an optional task execution IAM role that you can specify with Fargate to allow your Fargate tasks to make API calls to Amazon ECR."
+      ExecutionRoleArn: !Ref ExecutionRole
+      # "The Amazon Resource Name (ARN) of an AWS Identity and Access Management (IAM) role that grants containers in the task permission to call AWS APIs on your behalf."
+      TaskRoleArn: !Ref TaskRole
+      ContainerDefinitions:
+        - Name: !Join ["-", ["Acabot", !Ref EnvironmentName]]
+          Image: !Ref latestImageUri
+          PortMappings:
+            - ContainerPort: 3000
+          # Send logs to CloudWatch Logs
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: ecs
+          Environment:
+            - Name: "NEXT_PUBLIC_API_BASE_URL"
+              Value: !FindInMap [ConfigMap, !Ref EnvironmentName, ApiEndpoint]
+            - Name: "COGNITO_POOL_ID"
+              Value: !Ref CognitoUserPoolID
+            - Name: "COGNITO_REGION"
+              Value: !Sub ${AWS::Region}
+            - Name: "COGNITO_ISSUER"
+              Value: !Ref UserPoolProviderURL
+            - Name: "COGNITO_CLIENT_ID"
+              Value: !Ref CognitoClientID
+            - Name: "NEXT_PUBLIC_COGNITO_CLIENT_ID1"
+              Value: !Ref CognitoClientID
+            - Name: "COGNITO_CLIENT_SECRET"
+              Value: !Ref CognitoClientSecretID
+            - Name: "COGNITO_CREDENTIAL_CLIENT_ID"
+              Value: !Ref CognitoCredentialsClientID
+            - Name: "NEXTAUTH_URL"
+              Value: !FindInMap [ConfigMap, !Ref EnvironmentName, NextAuthUrl]
+            - Name: "AUTH_SECRET"
+              Value: !FindInMap [ConfigMap, !Ref EnvironmentName, AuthSecret]
+            - Name: "COGNITO_OAUTH_URL"
+              Value: !FindInMap [ConfigMap, !Ref EnvironmentName, CognitoOAuthUrl]
+
+      Tags:
+        - Key: Name
+          Value: !Sub Acabot-TaskDefinition-${EnvironmentName}
+      RuntimePlatform:
+        OperatingSystemFamily: LINUX
+
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Join ["-", ["Acabot" , Service, !Ref EnvironmentName]]
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinition
+      EnableECSManagedTags: true
+      PropagateTags: "SERVICE"
+      DeploymentConfiguration:
+        MinimumHealthyPercent: 100
+        MaximumPercent: 200
+      DesiredCount: 1
+      # This may need to be adjusted if the container takes a while to start up
+      HealthCheckGracePeriodSeconds: 500
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          # change to DISABLED if you're using private subnets that have access to a NAT gateway
+          AssignPublicIp: ENABLED
+          Subnets: !Split [",", !FindInMap [ConfigMap, !Ref EnvironmentName, SubnetIds]]
+          SecurityGroups:
+            - !Ref ContainerSecurityGroup
+      LoadBalancers:
+        - ContainerName: !Join ["-", ["Acabot", !Ref EnvironmentName ]]
+          ContainerPort: 3000
+          TargetGroupArn: !Ref TargetGroup
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [Acabot , Service, !Ref EnvironmentName]]
+
+  
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      UserPoolName: !Sub ${ProjectName}-${EnvironmentName}
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 10
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+          RequireUppercase: false
+          TemporaryPasswordValidityDays: 30
+      # EmailConfiguration:
+      #     From: !FindInMap [ConfigMap, !Ref EnvironmentName, fromEmailAddress]
+
+  ResourceServer:
+    Type: AWS::Cognito::UserPoolResourceServer
+    Properties:
+      Identifier: acabot_api
+      Name: !Sub ${ProjectName}-${EnvironmentName}
+      UserPoolId: !Ref UserPool
+      Scopes:
+        - ScopeDescription: All resources
+          ScopeName: all
+
+  UserPoolClient:
+    DependsOn: ResourceServer
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub ${ProjectName}-${EnvironmentName}
+      GenerateSecret: true
+      UserPoolId: !Ref UserPool
+      AllowedOAuthFlows:
+        - client_credentials
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - acabot_api/all
+      ExplicitAuthFlows:
+        - USER_PASSWORD_AUTH
+      # GenerateSecret: false
+
+
+
+# New version of cognito
+
+
+  UserPoolV1:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      UserPoolName: !Sub Acabot-${EnvironmentName}
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          RequireUppercase: true
+          TemporaryPasswordValidityDays: 30
+
+  ResourceServerV1:
+    Type: AWS::Cognito::UserPoolResourceServer
+    Properties:
+      Identifier: acabot_api
+      Name: !Sub Acabot-${EnvironmentName}
+      UserPoolId: !Ref UserPoolV1
+      Scopes:
+        - ScopeDescription: All resources
+          ScopeName: all
+
+  UserPoolClient1V1:
+    DependsOn: ResourceServerV1
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub Acabot-SocialLogin-${EnvironmentName}
+      GenerateSecret: true
+      UserPoolId: !Ref UserPoolV1
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - openid
+        - profile
+        - email
+      ExplicitAuthFlows:
+        - USER_PASSWORD_AUTH
+      CallbackURLs:
+        - "http://localhost:3000/api/auth/callback/cognito"
+        - "http://localhost:3000/api/auth/callback/google"
+        - "http://localhost:3000/api/auth/callback/linkedin"
+        - "http://localhost:3000/dashboard/api/auth/callback"
+        - "http://localhost:3000/dashboard"
+        - !Sub 
+            - "${domainName}/api/auth/callback"
+            - domainName: !FindInMap [ConfigMap, !Ref EnvironmentName, domainName]
+        - !Sub 
+            - "${domainName}/api/auth/callback/cognito"
+            - domainName: !FindInMap [ConfigMap, !Ref EnvironmentName, domainName]
+        - !Sub 
+            - "${domainName}/api/auth/callback/google"
+            - domainName: !FindInMap [ConfigMap, !Ref EnvironmentName, domainName]
+        - !Sub 
+            - "${domainName}/api/auth/callback/linkedin"
+            - domainName: !FindInMap [ConfigMap, !Ref EnvironmentName, domainName]
+        - !Sub 
+            - "${domainName}/dashboard"
+            - domainName: !FindInMap [ConfigMap, !Ref EnvironmentName, domainName]
+      LogoutURLs:
+          - "http://localhost:3000/login"
+          - !Sub 
+              - "${domainName}/login"
+              - domainName: !FindInMap [ConfigMap, !Ref EnvironmentName, domainName]
+      SupportedIdentityProviders:
+            - LinkedIn
+            - Google
+
+  UserPoolClient2V1:
+    DependsOn: ResourceServerV1
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub Acabot-CredentialLogin-${EnvironmentName}
+      GenerateSecret: true
+      UserPoolId: !Ref UserPoolV1
+      # AllowedOAuthFlows:
+      #   - authorization_code
+      # AllowedOAuthFlowsUserPoolClient: true
+      # AllowedOAuthScopes:
+      #   - acabot_api/all
+      ExplicitAuthFlows:
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+      GenerateSecret: false
+
+  GoogleIdentityProvider:
+    Type: "AWS::Cognito::UserPoolIdentityProvider"
+    Properties:
+      ProviderName: "Google"
+      UserPoolId: !Ref UserPoolV1
+      ProviderType: "Google"
+      ProviderDetails:
+        client_id: !Ref GoogleClientID
+        client_secret: !Ref GoogleClientSecret
+        authorize_scopes: "email"
+      AttributeMapping:
+        username: sub
+        email: email
+
+  LinkedInIdentityProvider:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      UserPoolId: !Ref UserPoolV1
+      ProviderName: "LinkedIn"
+      ProviderType: OIDC
+      ProviderDetails:
+        attributes_request_method: "GET"
+        authorize_url: "https://www.linkedin.com/oauth/v2/authorization"
+        client_id: !Ref LinkedInClientID
+        client_secret: !Ref LinkedInClientSecret
+        attributes_request_method: GET
+        oidc_issuer: "https://www.linkedin.com/oauth"
+        authorize_scopes: openid profile email
+        jwks_uri: "https://www.linkedin.com/oauth/openid/jwks"
+        oidc_issuer: "https://www.linkedin.com/oauth"
+        token_url: "https://www.linkedin.com/oauth/v2/accessToken"
+      AttributeMapping:
+        username: sub
+        email: email
+
+  UserPoolDomainV1: 
+    Type: AWS::Cognito::UserPoolDomain 
+    Properties:
+      UserPoolId: !Ref UserPoolV1 
+      Domain: !FindInMap [ConfigMap, !Ref EnvironmentName, cognitodomain]
+
+Outputs:
+  UserPoolId:
+    Value: !Ref UserPool
+    Description: UserPoolId
+  UserPoolArn:
+    Value: !GetAtt UserPool.Arn
+    Description: UserPoolArn
+    # Export:
+    #   Name: !Sub "${ProjectName}-UserPoolArn"
+  UserPoolProviderURL:
+    Value: !GetAtt UserPool.ProviderURL
+    Description: UserPool Provider URL
+  CognitoClientId:
+    Value: !GetAtt UserPoolClient.ClientId
+    Description: Cognito Client Id
+
+  UserPoolIdV1:
+    Value: !Ref UserPoolV1
+    Description: UserPoolId
+  UserPoolArnV1:
+    Value: !GetAtt UserPoolV1.Arn
+    Description: UserPoolArn
+    # Export:
+    #   Name: !Sub "${ProjectName}-UserPoolArn"
+  UserPoolProviderURLV1:
+    Value: !GetAtt UserPoolV1.ProviderURL
+    Description: UserPool Provider URL
+  CognitoClientIdV1:
+    Value: !GetAtt UserPoolClient1V1.ClientId
+    Description: Cognito Client Id
+  CognitoCredentialsClientIdV1:
+    Value: !GetAtt UserPoolClient2V1.ClientId
+    Description: Cognito Client Id
